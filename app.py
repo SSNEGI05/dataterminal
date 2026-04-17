@@ -110,11 +110,9 @@ selected_tab = option_menu(
 st.markdown(f"<div style='padding:30px 0;'></div>", unsafe_allow_html=True)
 
 if selected_tab == "Home":
-    st.markdown(f"<h2>HOME</h2>", unsafe_allow_html=True)
-    st.markdown(
-        "<p style='color:gray;'>Home tab — coming in next session.</p>",
-        unsafe_allow_html=True,
-    )
+    from tabs import home
+    home.render()
+    
 elif selected_tab == "Gainers/Losers":
     st.markdown(f"<h2>TOP GAINERS & LOSERS</h2>", unsafe_allow_html=True)
     st.markdown("<p style='color:gray;'>Coming soon.</p>", unsafe_allow_html=True)

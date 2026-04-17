@@ -15,11 +15,38 @@ def apply_theme():
     css = f"""
     <style>
     /* ---------- main app background ---------- */
-    .stApp {{
-        background-color: {BG_BLACK};
-        color: {ORANGE};
-        font-family: {FONT_MONO};
-    }}
+ .stApp {{
+    background-color: {BG_BLACK};
+    color: {ORANGE};
+    font-family: {FONT_MONO};
+ }}
+
+  /* ---------- kill Streamlit's default top padding (stronger) ---------- */
+ .main .block-container,
+ .block-container,
+ [data-testid="stAppViewContainer"] > .main > .block-container,
+ section.main > div.block-container {{
+    padding-top: 0.5rem !important;
+    padding-bottom: 2rem !important;
+    max-width: 98% !important;
+ }}
+
+ /* kill the toolbar/decoration bar above content */
+ [data-testid="stHeader"] {{
+    height: 0 !important;
+    background: transparent !important;
+ }}
+ [data-testid="stToolbar"] {{
+    display: none !important;
+ }}
+ [data-testid="stDecoration"] {{
+    display: none !important;
+ }}
+
+ /* pull the whole app view up */
+ [data-testid="stAppViewContainer"] {{
+    padding-top: 0 !important;
+ }}
 
     /* ---------- hide Streamlit default chrome ---------- */
     #MainMenu {{visibility: hidden;}}
