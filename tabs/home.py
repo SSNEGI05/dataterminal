@@ -12,7 +12,6 @@ from config import (
 )
 
 
-# ---------- INDEX CARDS ----------
 def _index_card_html(name, price, pct):
     color = GREEN_UP if pct >= 0 else RED_DOWN
     sign  = "+" if pct >= 0 else ""
@@ -60,7 +59,6 @@ def _render_indices():
             )
 
 
-# ---------- CHARTS ----------
 def _plot_index(symbol, display_name, period="1y"):          # 🔧 period: 3mo, 6mo, 1y, 2y, 5y, max
     df = get_history(symbol, period=period, interval="1d")
     if df.empty:
@@ -69,7 +67,6 @@ def _plot_index(symbol, display_name, period="1y"):          # 🔧 period: 3mo,
     fig, ax = plt.subplots(figsize=(7, 3.2), facecolor=BG_BLACK)   # 🔧 chart size
     ax.set_facecolor(BG_BLACK)
 
-    # Green if period gain, red if period loss
     start_price = df["Close"].iloc[0]
     end_price   = df["Close"].iloc[-1]
     line_color  = GREEN_UP if end_price >= start_price else RED_DOWN
@@ -100,17 +97,16 @@ def _render_charts():
     with col1:
         fig = _plot_index("^GSPC", "S&P 500")
         if fig:
-            st.pyplot(fig, use_container_width=True)
+            st.pyplot(fig, width="stretch")
             plt.close(fig)
 
     with col2:
         fig = _plot_index("^NDX", "NASDAQ 100")
         if fig:
-            st.pyplot(fig, use_container_width=True)
+            st.pyplot(fig, width="stretch")
             plt.close(fig)
 
 
-# ---------- ENTRY POINT ----------
 def render():
     _render_indices()
     _render_charts()

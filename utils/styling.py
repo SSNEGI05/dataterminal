@@ -88,10 +88,30 @@ def apply_theme():
     }}
 
     /* ---------- select/input boxes ---------- */
-    .stSelectbox, .stTextInput, .stNumberInput {{
-        background-color: {BG_PANEL};
-        color: {WHITE};
-    }}
+ .stSelectbox div[data-baseweb="select"] > div {{
+    background-color: {BG_PANEL} !important;
+    color: {ORANGE} !important;
+    border: 1px solid {ORANGE_DIM} !important;
+    font-family: {FONT_MONO};
+ }}
+ .stSelectbox div[data-baseweb="select"] input {{
+    color: {ORANGE} !important;
+ }}
+ /* dropdown menu popup */
+ div[data-baseweb="popover"] li {{
+    background-color: {BG_PANEL} !important;
+    color: {WHITE} !important;
+    font-family: {FONT_MONO};
+ }}
+ div[data-baseweb="popover"] li:hover {{
+    background-color: {ORANGE} !important;
+    color: {BG_BLACK} !important;
+ }}
+ .stTextInput input, .stNumberInput input {{
+    background-color: {BG_PANEL} !important;
+    color: {ORANGE} !important;
+    border: 1px solid {ORANGE_DIM} !important;
+ }}
 
     /* ---------- metric cards (st.metric) ---------- */
     [data-testid="stMetricValue"] {{
