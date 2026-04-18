@@ -10,7 +10,11 @@ from fredapi import Fred
 from config import CACHE_MACRO
 
 load_dotenv()
-_FRED_KEY = os.getenv("FRED_API_KEY")
+try:
+    _FRED_KEY = st.secrets["FRED_API_KEY"]  # Streamlit Cloud
+except (FileNotFoundError, KeyError):
+    _FRED_KEY = os.getenv("FRED_API_KEY")   # local .env fallback
+
 
 
 # 🔧 9 macro indicators — FRED series IDs
