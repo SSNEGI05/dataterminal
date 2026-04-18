@@ -5,7 +5,6 @@
 import streamlit as st
 from datetime import datetime
 from streamlit_option_menu import option_menu
-from tabs import debug
 
 from config import APP_NAME, APP_TAGLINE, ORANGE, ORANGE_DIM, WHITE, FONT_MONO
 from utils.styling import apply_theme
@@ -61,27 +60,15 @@ render_ticker_tape()
 
 
 # ---------- TABS: single registry ----------
-# Add a new tab in future: create tabs/new_tab.py with render(), then add one line here.
-from tabs import home, gainers_losers, high_low_52w, all_time_highs, market_news, sector_data, sector_rotation, macro_data
-
-# Placeholder — will be filled as we build tabs. Until built, shows "Coming soon".
-def _placeholder(name):
-    def _render():
-        st.markdown(f"<h2>{name.upper()}</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='color:gray;'>Coming soon.</p>", unsafe_allow_html=True)
-    return _render
-
+from tabs import home, market_news, sector_data, sector_rotation, macro_data, commodities_crypto
 
 TABS = {
-    "Home":            home.render,
-    "Gainers/Losers":  gainers_losers.render,
-    "52W High/Low":    high_low_52w.render,
-    "All-Time Highs": all_time_highs.render,
-    "Market News":       market_news.render,
-    "Sector Data":     sector_data.render,
-    "Sector Rotation": sector_rotation.render,
-    "Macro Data":      macro_data.render,
-    "🔧 Debug": debug.render,
+    "Home":               home.render,
+    "Commodities/Crypto": commodities_crypto.render,
+    "Market News":        market_news.render,
+    "Sector Data":        sector_data.render,
+    "Sector Rotation":    sector_rotation.render,
+    "Macro Data":         macro_data.render,
 }
 
 
