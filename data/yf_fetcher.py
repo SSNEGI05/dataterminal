@@ -2,6 +2,7 @@
 # Central yfinance wrapper. Every tab imports from here.
 # All calls are cached to avoid rate limits.
 
+import time
 import streamlit as st
 import yfinance as yf
 import pandas as pd
@@ -17,6 +18,9 @@ from config import (
 _BROWSER_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 }
+
+_BATCH_SIZE = 20   # 🔧 lower to 10 if cloud still rate-limits
+_BATCH_DELAY = 1   # 🔧 increase to 2 if still failing
 
 
 # ============================================================
@@ -58,59 +62,75 @@ def get_quote(symbol):
 
 @st.cache_data(ttl=CACHE_LIVE_PRICES)
 def get_batch_quotes(symbols):
-    """Quotes for many symbols in one API call."""
+    """Quotes for many symbols — batched to avoid cloud rate limits."""
     if not symbols:
         return []
+
     results = []
-    try:
-        data = yf.download(
-            tickers=" ".join(symbols),
-            period="5d", interval="1d",
-            progress=False, group_by="ticker", auto_adjust=True,
-        )
-        for sym in symbols:
-            try:
-                df = data[sym] if len(symbols) > 1 else data
-                close = df["Close"].dropna()
-                vol   = df["Volume"].dropna()
-                if len(close) < 2:
+
+    for i in range(0, len(symbols), _BATCH_SIZE):
+        batch = symbols[i:i + _BATCH_SIZE]
+        try:
+            data = yf.download(
+                tickers=" ".join(batch),
+                period="5d", interval="1d",
+                progress=False, group_by="ticker", auto_adjust=True,
+            )
+            for sym in batch:
+                try:
+                    df = data[sym] if len(batch) > 1 else data
+                    close = df["Close"].dropna()
+                    vol   = df["Volume"].dropna()
+                    if len(close) < 2:
+                        continue
+                    price = float(close.iloc[-1])
+                    prev  = float(close.iloc[-2])
+                    results.append({
+                        "symbol": sym, "price": price, "prev_close": prev,
+                        "change": price - prev,
+                        "pct_change": ((price - prev) / prev) * 100,
+                        "volume": int(vol.iloc[-1]) if len(vol) > 0 else 0,
+                    })
+                except Exception:
                     continue
-                price = float(close.iloc[-1])
-                prev  = float(close.iloc[-2])
-                results.append({
-                    "symbol": sym, "price": price, "prev_close": prev,
-                    "change": price - prev,
-                    "pct_change": ((price - prev) / prev) * 100,
-                    "volume": int(vol.iloc[-1]) if len(vol) > 0 else 0,
-                })
-            except Exception:
-                continue
-    except Exception as e:
-        print(f"[get_batch_quotes] error: {e}")
+        except Exception:
+            continue
+
+        if i + _BATCH_SIZE < len(symbols):
+            time.sleep(_BATCH_DELAY)
+
     return results
 
 
 @st.cache_data(ttl=CACHE_LIVE_PRICES)
 def get_batch_history(symbols, period="1y", interval="1d"):
-    """Bulk history for many symbols. Returns dict {symbol: DataFrame}."""
+    """Bulk history — batched to avoid cloud rate limits."""
     if not symbols:
         return {}
+
     results = {}
-    try:
-        data = yf.download(
-            tickers=" ".join(symbols),
-            period=period, interval=interval,
-            progress=False, group_by="ticker", auto_adjust=True,
-        )
-        for sym in symbols:
-            try:
-                df = data[sym] if len(symbols) > 1 else data
-                if not df.empty:
-                    results[sym] = df
-            except Exception:
-                continue
-    except Exception as e:
-        print(f"[get_batch_history] error: {e}")
+
+    for i in range(0, len(symbols), _BATCH_SIZE):
+        batch = symbols[i:i + _BATCH_SIZE]
+        try:
+            data = yf.download(
+                tickers=" ".join(batch),
+                period=period, interval=interval,
+                progress=False, group_by="ticker", auto_adjust=True,
+            )
+            for sym in batch:
+                try:
+                    df = data[sym] if len(batch) > 1 else data
+                    if not df.empty:
+                        results[sym] = df
+                except Exception:
+                    continue
+        except Exception:
+            continue
+
+        if i + _BATCH_SIZE < len(symbols):
+            time.sleep(_BATCH_DELAY)
+
     return results
 
 
@@ -292,6 +312,7 @@ def get_all_time_highs(top_n=20):
     df_all = pd.DataFrame(results).sort_values("pct_from_ath", ascending=False)
     return df_all.head(top_n).reset_index(drop=True)
 
+
 # ============================================================
 # SECTOR PERFORMANCE — multiple timeframes
 # ============================================================
@@ -303,13 +324,12 @@ def get_sector_multi_timeframe():
     Returns pandas DataFrame, one row per sector.
     """
     symbols = list(SECTOR_ETFS.values())
-    data    = get_batch_history(symbols, period="5y")   # 5y covers all timeframes
+    data    = get_batch_history(symbols, period="5y")
     if not data:
         return pd.DataFrame()
 
     sym_to_sector = {v: k for k, v in SECTOR_ETFS.items()}
 
-    # Trading-day offsets (approximate) for each timeframe
     timeframes = {
         "1D":   1,
         "1W":   5,
@@ -334,7 +354,6 @@ def get_sector_multi_timeframe():
                 "price":  price,
             }
 
-            # Compute % change for each timeframe
             for label, days in timeframes.items():
                 if len(close) > days:
                     past  = float(close.iloc[-1 - days])
@@ -348,6 +367,7 @@ def get_sector_multi_timeframe():
             continue
 
     return pd.DataFrame(rows)
+
 
 # ============================================================
 # SECTOR ROTATION — relative strength vs SPY + momentum
@@ -373,7 +393,6 @@ def get_sector_rotation():
 
     windows = {"1W": 5, "1M": 21, "3M": 63, "6M": 126}
 
-    # SPY returns per window
     spy_ret = {}
     for label, days in windows.items():
         if len(spy_close) > days:
@@ -404,7 +423,6 @@ def get_sector_rotation():
                 abs_ret[label]    = None
                 rel_strength[label] = None
 
-        # Weighted relative-strength score (used only for ranking, not displayed)
         rs_score = ((rel_strength.get("1M") or 0) * 0.35
                   + (rel_strength.get("3M") or 0) * 0.35
                   + (rel_strength.get("6M") or 0) * 0.30)
