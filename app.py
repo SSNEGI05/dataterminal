@@ -61,7 +61,7 @@ render_ticker_tape()
 
 # ---------- TABS: single registry ----------
 # Add a new tab in future: create tabs/new_tab.py with render(), then add one line here.
-from tabs import home, gainers_losers, high_low_52w, all_time_highs, market_news, sector_data, sector_rotation
+from tabs import home, gainers_losers, high_low_52w, all_time_highs, market_news, sector_data, sector_rotation, macro_data
 
 # Placeholder — will be filled as we build tabs. Until built, shows "Coming soon".
 def _placeholder(name):
@@ -79,7 +79,7 @@ TABS = {
     "Market News":       market_news.render,
     "Sector Data":     sector_data.render,
     "Sector Rotation": sector_rotation.render,
-    "Macro Data":      _placeholder("Macro Data"),
+    "Macro Data":      macro_data.render,
 }
 
 
