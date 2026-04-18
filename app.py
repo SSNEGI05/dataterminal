@@ -5,6 +5,7 @@
 import streamlit as st
 from datetime import datetime
 from streamlit_option_menu import option_menu
+from tabs import debug
 
 from config import APP_NAME, APP_TAGLINE, ORANGE, ORANGE_DIM, WHITE, FONT_MONO
 from utils.styling import apply_theme
@@ -80,6 +81,7 @@ TABS = {
     "Sector Data":     sector_data.render,
     "Sector Rotation": sector_rotation.render,
     "Macro Data":      macro_data.render,
+    "🔧 Debug": debug.render,
 }
 
 
