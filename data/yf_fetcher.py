@@ -19,7 +19,7 @@ _BROWSER_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 }
 
-_BATCH_SIZE = 20   # 🔧 lower to 10 if cloud still rate-limits
+_BATCH_SIZE = 15   # 🔧 lower to 10 if cloud still rate-limits
 _BATCH_DELAY = 1   # 🔧 increase to 2 if still failing
 
 
